@@ -5,12 +5,12 @@ let fs = require('fs')
 let package = require('./package.json')
 const CFonts = require('cfonts')
 CFonts.say('Aguz Familia', {
-  colors: ['#f2aa4c'],
+  colors: ['#90A0A0'],
   font: 'block',
   align: 'center',
 })
 CFonts.say(`'${package.name}' Oleh @${package.author.name || package.author}`, {
-  colors: ['#f2aa4c'],
+  colors: ['#90A0A0'],
   font: 'console',
   align: 'center',
 })
@@ -25,7 +25,7 @@ function start(file) {
   isRunning = true
   let args = [path.join(__dirname, file), ...process.argv.slice(2)]
   CFonts.say([process.argv[0], ...args].join(' '), {
-    colors: ['#f2aa4c'],
+    colors: ['#90A0A0'],
     font: 'console',
     align: 'center',
   })

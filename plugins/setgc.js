@@ -8,12 +8,19 @@ let PhoneNumber = require('awesome-phonenumber')
 let fs = require ('fs')
 let path = require('path')
 
-let handler  = async (m, { conn, usedPrefix: _p }) => {
-let package = JSON.parse(fs.readFileSync(path.join(__dirname, '../package.json')))
-let name = registered ? global.db.data.users[m.sender].name : conn.getName(m.sender)
-const jam = moment.tz('Asia/Jakarta').format('HH')
+let handler = async (m, { conn, usedPrefix: _p }) => {
 
- var ucapanWaktu = 'Selamat Pagi 🌄'
+let package = JSON.parse(fs.readFileSync(path.join(__dirname, '../package.json')))
+
+let { exp, limit, level, registered } = global.db.data.users[m.sender] //  ini let level,exp,money,limit, dll. tambahin aja  kalo mau dibuat ada umurnya atau apa gitu
+
+    let name = registered ? global.db.data.users[m.sender].name : conn.getName(m.sender) // ini nama user
+
+   let q = m.quoted ? m.quoted : m // ini sih gk guna, tapi gw tambahin aja biar suatu saat nnti psti lu butuh ini
+
+const jam = moment.tz('Asia/Jakarta').format('HH') // ini jam online
+
+ var ucapanWaktu = 'Selamat Pagi 🌄' // ini ucapan
 
 
 
@@ -41,7 +48,7 @@ const jam = moment.tz('Asia/Jakarta').format('HH')
 
 conn.relayWAMessage(conn.prepareMessageFromContent(m.chat, {
                     "listMessage":  {
-                        "title": "${ucapanWaktu} ${name}\nSaya ENJELA\n\nMenu Ini Khusus ADMIN Ya Kak\nPilih Menu Di Bawah Yaa\nDan Jangan Lupa Baca Dibawah ini\n\nSpam = Banned\nTelp = Blok\n\n\nDonasinya Ke Sini Kak :)\nhttp://wa.me/6282324892737\n\nAtau bisa juga dengan ketik *.donasi*\n\n",
+                        "title": `*${ucapanWaktu} ${name}*\nSaya ENJELA\n\nMenu Ini Khusus ADMIN Ya Kak\nPilih Menu Di Bawah Yaa\nDan Jangan Lupa Baca Dibawah ini\n\nSpam = Banned\nTelp = Blok\n\n\nDonasinya Ke Sini Kak :)\nhttp://wa.me/6282324892737\n\nAtau bisa juga dengan ketik *.donasi*\n\n`,
                         "description": "*©FOKUSDOTID*",
                         "buttonText": "Klik Disini Untuk Liat List",
                         "listType": "SINGLE_SELECT",
@@ -62,7 +69,7 @@ conn.relayWAMessage(conn.prepareMessageFromContent(m.chat, {
                                         "rowId": ".on antilink"                 
                                     },{
                                     	"title": "*ANTILINK GROUP MATI*",
-                                        "description": "\nMatikan Antilink Group",
+                                        "description": "",
                                         "rowId": ".off antilink"                 
                                     },{
                                         "title": "*WELLCOME NYALA*",
