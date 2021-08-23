@@ -233,13 +233,13 @@ let tags = {
     let after  = conn.menu.after  || (conn.user.jid == global.conn.user.jid ? '' : `Powered By @${global.conn.user.jid.split`@`[0]}`) + `╭━━━━━━━━━━━━━━━━━━━┈ ⳹
 │                *「 CREDIT 」* 
 │
+│ *◦➛ Allah SWT.
+│ *◦➛ Emak & Alm.Bapak
 │ *◦➛ Nurutomo* (Creator)
 │ *◦➛ Arifb* (Contributor)
-│ *◦➛ Aguz Familia*
-│ *◦➛ Bochil-Gaming*
-│ *◦➛ Arifi Razzaq*
-│ *◦➛ X-Team*
-│ *◦➛ Zahirr*
+│ *◦➛ Aguz Familia* (Recode)
+│ *◦➛ Bochil-Gaming* (Rpg)
+│ *◦➛ Penyedia Apikey*
 │ *◦➛ Dan Pengguna Bot*
 ╰━━━━━━━━━━━━━━━━━━━┈ ❋ཻུ۪۪⸙
 `

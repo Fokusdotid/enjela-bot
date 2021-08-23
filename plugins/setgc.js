@@ -1,7 +1,47 @@
-﻿let handler = async (m, { conn }) =>
+﻿let { performance } = require('perf_hooks')
+let util = require('util')
+let fetch = require('node-fetch');
+let { MessageType, mentionedJid } = require('@adiwajshing/baileys')
+let levelling = require('../lib/levelling')
+const moment = require('moment-timezone')
+let PhoneNumber = require('awesome-phonenumber')
+let fs = require ('fs')
+let path = require('path')
+
+let handler  = async (m, { conn, usedPrefix: _p }) => {
+let package = JSON.parse(fs.readFileSync(path.join(__dirname, '../package.json')))
+let name = registered ? global.db.data.users[m.sender].name : conn.getName(m.sender)
+const jam = moment.tz('Asia/Jakarta').format('HH')
+
+ var ucapanWaktu = 'Selamat Pagi 🌄'
+
+
+
+                if (jam >= '03' && jam <= '10') {
+
+                ucapanWaktu = 'Selamat Pagi 🌄'
+
+                } else if (jam >= '10' && jam <= '13') {
+
+                ucapanWaktu = 'Selamat Siang ☀️'
+
+                } else if (jam >= '13' && jam <= '18') {
+
+                ucapanWaktu = 'Selamat Sore 🌅'
+
+                } else if (jam >= '18' && jam <= '23') {
+
+                ucapanWaktu = 'Selamat Malam 🌙'
+
+                } else {
+
+                ucapanWaktu = 'Selamat Malam 🌙'
+
+                }
+
 conn.relayWAMessage(conn.prepareMessageFromContent(m.chat, {
                     "listMessage":  {
-                        "title": "HALO KAK\nSaya ENJELA\n\nMenu Ini Khusus ADMIN Ya Kak\nPilih Menu Di Bawah Yaa\nDan Jangan Lupa Baca Dibawah ini\n\nSpam = Banned\nTelp = Blok\n\n\nDonasinya Ke Sini Kak :)\nhttp://wa.me/6282324892737\n\nAtau bisa juga dengan ketik *.donasi*\n\n",
+                        "title": "${ucapanWaktu} ${name}\nSaya ENJELA\n\nMenu Ini Khusus ADMIN Ya Kak\nPilih Menu Di Bawah Yaa\nDan Jangan Lupa Baca Dibawah ini\n\nSpam = Banned\nTelp = Blok\n\n\nDonasinya Ke Sini Kak :)\nhttp://wa.me/6282324892737\n\nAtau bisa juga dengan ketik *.donasi*\n\n",
                         "description": "*©FOKUSDOTID*",
                         "buttonText": "Klik Disini Untuk Liat List",
                         "listType": "SINGLE_SELECT",
@@ -9,16 +49,16 @@ conn.relayWAMessage(conn.prepareMessageFromContent(m.chat, {
                             {
                              "rows": [
                                     {
-                                        "title": `*GROUP OPEN/BUKA*`,
-                                        "description": "\nGroup Saya Buka",
+                                        "title": "GROUP OPEN/BUKA",
+                                        "description": "",
                                         "rowId": ".group buka"
                                     },{
-                                        "title": "*GROUP CLOSE/TUTUP*",
-                                        "description": "\nGroup Saya Tutup",
+                                        "title": "GROUP CLOSE/TUTUP",
+                                        "description": "",
                                         "rowId": ".group close"
                                     },{
-                                        "title": "*ANTILINK GROUP NYALA*",
-                                        "description": "\nNyalakan Antilink Group",
+                                        "title": "ANTILINK GROUP NYALA",
+                                        "description": "",
                                         "rowId": ".on antilink"                 
                                     },{
                                     	"title": "*ANTILINK GROUP MATI*",
@@ -26,39 +66,43 @@ conn.relayWAMessage(conn.prepareMessageFromContent(m.chat, {
                                         "rowId": ".off antilink"                 
                                     },{
                                         "title": "*WELLCOME NYALA*",
-                                        "description": "\nNyalakan Welcome Group",
+                                        "description": "",
                                         "rowId": ".on welcome"                 
                                     },{
+                                        "title": "*WELLCOME MATI*",
+                                        "description": "",
+                                        "rowId": ".off welcome"                 
+                                    },{    
                                         "title": "*ANTITROLI GROUP NYALA*",
-                                        "description": "\nNyalakan AntiTroli Di Group Ini",
+                                        "description": "",
                                         "rowId": ".on antitroli"                 
                                     },{
                                         "title": "*ANTITROLI GROUP MATI*",
-                                        "description": "\nMatikan AntiTroli Di Group Ini",
+                                        "description": "",
                                         "rowId": ".off antitroli"
- 			            },{
+ 			                        },{
                                         "title": "*PESAN SEMENTARA NYALA*",
-                                        "description": "\nNyalakan Pesan Sementara",
+                                        "description": "",
                                         "rowId": ".ephe on"
-				    },{
+				                    },{
                                         "title": "*PESAN SEMENTARA MATI*",
-                                        "description": "\nMatikan Pesan Sementara",
+                                        "description": "",
                                         "rowId": ".ephe off"
                                     },{
                                         "title": "*PESAN ANTI HAPUS NYALA*",
-                                        "description": "\nNyalakan Pesan Anti Hapus",
+                                        "description": "",
                                         "rowId": ".on antidelete"
                                     },{
                                         "title": "*PESAN ANTI HAPUS MATI*",
-                                        "description": "\nMatikan Pesan Anti Hapus",
+                                        "description": "",
                                         "rowId": ".off antidelete"
                                     },{
                                         "title": "*DETECT ADMIN GROUP NYALA*",
-                                        "description": "\nNyalakan Fitur Deteksi Jadi Admin Group",
+                                        "description": "",
                                         "rowId": ".on detect"                 
                                     },{
                                         "title": "*DETECT ADMIN GROUP MATI*",
-                                        "description": "\nMatikan Fitur Deteksi Jadi Admin Group",
+                                        "description": "",
                                         "rowId": ".off detect"
                                     }
                                 ]
@@ -69,8 +113,26 @@ conn.relayWAMessage(conn.prepareMessageFromContent(m.chat, {
 }
                     }
                  }, {}), {waitForAck: true})
+}
 handler.help = ['setgc']
 handler.tags = ['group']
 handler.command = ['setgc']
 handler.register = true
 module.exports = handler
+
+const more = String.fromCharCode(8206)
+const readMore = more.repeat(4001)
+
+
+
+function clockString(ms) {
+
+  let h = isNaN(ms) ? '--' : Math.floor(ms / 3600000)
+
+  let m = isNaN(ms) ? '--' : Math.floor(ms / 60000) % 60
+
+  let s = isNaN(ms) ? '--' : Math.floor(ms / 1000) % 60
+
+  return [h, m, s].map(v => v.toString().padStart(2, 0) ).join(':')
+
+}
