@@ -10,7 +10,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     let json = JSON.parse(igdl)
     for (let { downloadUrl, type } of json) {
       await delay(1500)
-      conn.sendFile(m.chat, downloadUrl, 'ig' + (type == 'image' ? '.jpg' : '.mp4'), '*© stikerin*', m, 0, { thumbnail: Buffer.alloc(0) })
+      conn.sendFile(m.chat, downloadUrl, 'ig' + (type == 'image' ? '.jpg' : '.mp4'), 'Nihhhh Kaaakkkkkk', m, 0, { thumbnail: Buffer.alloc(0) })
     }
   })
 
