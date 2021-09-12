@@ -246,7 +246,7 @@ module.exports = {
           if (!'groupOnly' in settings) settings.groupOnly = false
           if (!'jadibot' in settings) settings.groupOnly = false
           if (!isNumber(settings.status)) settings.status = 0
-          if (!'clear' in settings) settings.clear = true
+          if (!'clear' in settings) settings.clear = false
           if (!isNumber(settings.cleartime)) settings.cleartime = 0 
         } else global.db.data.settings = {
           anon: true,
@@ -256,7 +256,7 @@ module.exports = {
           groupOnly: false,
           jadibot: false,
           status: 0,
-          clear: true,
+          clear: false,
           cleartime: 0,
         }  
       } catch (e) {
