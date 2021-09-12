@@ -91,37 +91,7 @@ let aguz = JSON.parse(await fs.promises.readFile(path.join(__dirname, '../data/a
     }
 
 let tags = {
-  'main': 'Main',
-  'about': 'About',
-  'rpg': 'RPG',
-  'game': 'Game',
-  'absen': 'Absen',
-  'xp': 'Exp',
-  'sticker': 'Sticker',
-  'audio': 'Audio',
-  'kerang': 'Kerang',
-  'quotes': 'Quotes',
-  'quran': 'Ngaji',
-  'group': 'Group',
-  'premium': 'Premium',
-  'database': 'Database',
-  'internet': 'Internet',
-  'anonymous': 'Anonymous',
-  'nulis': 'Nulis',
-  'downloader': 'Download',
-  'tools': 'Tools',
-  'fun': 'Funn',
-  'vote': 'Voting',
-  'jadibot': 'Jadi Bot',
-  'owner': 'Owner',
-  'nsfw': 'NSFW',
-  'host': 'Host',
-  'advanced': 'Entah',
-  'info': 'Ingfo',
-  '': 'Sw Bot',
-  'image': 'Image',
-  'spammer': 'Spamm',
-  'maker': 'Maker',
+  'owner': 'Owner'
 }
     for (let plugin of Object.values(global.plugins))
       if (plugin && 'tags' in plugin)
@@ -201,9 +171,9 @@ let tags = {
     throw e
   }
 }
-handler.help = ['allmenu', 'semuamenu']
-handler.tags = ['main']
-handler.command = /^(allmenu|semuamenu)$/i
+handler.help = ['ownermenu', 'menuowner']
+handler.tags = ['simpel']
+handler.command = /^(ownermenu|menuowner)$/i
 handler.owner = false
 handler.mods = false
 handler.premium = false

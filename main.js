@@ -1,28 +1,19 @@
 require('./config.js')
 "use strict";
-const { WAConnection: _WAConnection } = require('@adiwajshing/baileys')
-const cloudDBAdapter = require('./lib/cloudDBAdapter')
-const { generate } = require('qrcode-terminal')
-const syntaxerror = require('syntax-error')
-const simple = require('./lib/simple')
-//  const logs = require('./lib/logs')
-const { promisify } = require('util')
-const yargs = require('yargs/yargs')
-const Readline = require('readline')
-const cp = require('child_process')
-const _ = require('lodash')
-const path = require('path')
-const fs = require('fs')
-var low
-try {
-  low = require('lowdb')
-} catch (e) {
-  low = require('./lib/lowdb')
-}
-const { Low, JSONFile } = low
+let { WAConnection: _WAConnection } = require('@adiwajshing/baileys')
+let { generate } = require('qrcode-terminal')
+let syntaxerror = require('syntax-error')
+let simple = require('./lib/simple')
+//  let logs = require('./lib/logs')
+let { promisify } = require('util')
+let yargs = require('yargs/yargs')
+let Readline = require('readline')
+let cp = require('child_process')
+let path = require('path')
+let fs = require('fs')
 
-const rl = Readline.createInterface(process.stdin, process.stdout)
-const WAConnection = simple.WAConnection(_WAConnection)
+let rl = Readline.createInterface(process.stdin, process.stdout)
+let WAConnection = simple.WAConnection(_WAConnection)
 
 
 global.API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.APIs ? global.APIs[name] : name) + path + (query || apikeyqueryname ? '?' + new URLSearchParams(Object.entries({ ...query, ...(apikeyqueryname ? { [apikeyqueryname]: global.APIKeys[name in global.APIs ? global.APIs[name] : name] } : {}) })) : '')
@@ -35,23 +26,39 @@ global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse()
 
 global.prefix = new RegExp('^[' + (opts['prefix'] || '‎xzXZ/!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&,.\\-').replace(/[|\\{}()[\]^$+*?.\-\^]/g, '\\$&') + ']')
 
-global.db = new Low(
-  /https?:\/\//.test(opts['db'] || '') ?
-    new cloudDBAdapter(opts['db']) :
-    new JSONFile(`${opts._[0] ? opts._[0] + '_' : ''}database.json`)
-)
-global.DATABASE = global.db // Backwards Compatibility
+global.db = new (require('./lib/database'))(`${opts._[0] ? opts._[0] + '_' : ''}database.json`, null, 2)
+if (!global.db.data.users) global.db.data = {
+  users: {},
+  chats: {},
+  stats: {},
+  msgs: {},
+  sticker: {},
+}
+if (!global.db.data.chats) global.db.data.chats = {}
+if (!global.db.data.stats) global.db.data.stats = {}
+if (!global.db.data.msgs) global.db.data.msgs = {}
+if (!global.db.data.sticker) global.db.data.sticker = {}
 
+global.DATABASE = global.db // Backwards Compatibility
 global.conn = new WAConnection()
-let authFile = `${opts._[0] || 'agus'}.familia.json`
+let authFile = `${opts._[0] || 'aguz'}.familia.json`
 if (fs.existsSync(authFile)) conn.loadAuthInfo(authFile)
 if (opts['trace']) conn.logger.level = 'trace'
 if (opts['debug']) conn.logger.level = 'debug'
 if (opts['big-qr'] || opts['server']) conn.on('qr', qr => generate(qr, { small: false }))
-if (!opts['test']) setInterval(async () => {
-  await global.db.write()
+let lastJSON = JSON.stringify(global.db.data)
+if (!opts['test']) setInterval(() => {
+  conn.logger.info('[!] Menyimpan Database . . .')
+  if (JSON.stringify(global.db.data) == lastJSON) conn.logger.info('Database Sudah TerUpdate')
+  else {
+    global.db.save()
+    conn.logger.info('Berhasil Menyimpan Database!')
+    lastJSON = JSON.stringify(global.db.data)
+  }
 }, 60 * 1000) // Save every minute
 if (opts['server']) require('./server')(global.conn, PORT)
+
+
 
 if (opts['test']) {
   conn.user = {
@@ -95,19 +102,10 @@ if (opts['test']) {
   rl.on('line', line => conn.sendMessage('123@s.whatsapp.net', line.trim(), 'conversation'))
 } else {
   rl.on('line', line => {
+    global.db.save()
     process.send(line.trim())
   })
-  conn.connect().then(async () => {
-    await global.db.read()
-    global.db.data = {
-      users: {},
-      chats: {},
-      stats: {},
-      msgs: {},
-      sticker: {},
-      ...(global.db.data || {})
-    }
-    global.db.chain = _.chain(global.db.data)
+  conn.connect().then(() => {
     fs.writeFileSync(authFile, JSON.stringify(conn.base64EncodedAuthInfo(), null, '\t'))
     global.timestamp.connect = new Date
   })
@@ -122,22 +120,19 @@ global.reloadHandler = function () {
     conn.off('chat-update', conn.handler)
     conn.off('message-delete', conn.onDelete)
     conn.off('group-participants-update', conn.onParticipantsUpdate)
-    conn.off('group-update', conn.onGroupUpdate)
     conn.off('CB:action,,call', conn.onCall)
   }
-  conn.welcome = '╔════════════════════\n║╭───────────────────\n║│➻ *HALO @user*\n║│➻ *SELAMAT DATANG DIGRUB*\n║│➻ *@subject*\n║╰───────────────────\n╠══[ *WELCOME [•] NEW* ]════\n║╭─────[ *INTRO* ]────────\n║│➻ *NAMA* :\n║│➻ *UMUR* :\n║│➻ *GENDER* :\n║│➻ *ASKOT* :\n║│➻ *AGAMA* :\n║│➻ *ALASAN BERGABUNG* :\n║╰───────────────────\n╚════════════════════\n'
-  conn.bye = '*akhirnya beban group berkurang 𝟭*, *bye bye*🥳 @user *jasamu akan di kubur dalam²*'
+  conn.welcome = '╔═══════════════════════\n║╭──────────────────────\n║│➻ *HALO @user*\n║│➻ *SELAMAT DATANG DIGRUB*\n║│➻ *@subject*\n║╰──────────────────────\n╠══[ *WELCOME NEW  MEMBER* ]═══\n║╭───────[ *INTRO* ]─────────\n║│➻ *NAMA* :\n║│➻ *UMUR* :\n║│➻ *GENDER* :\n║│➻ *ASKOT* :\n║│➻ *AGAMA* :\n║│➻ *ALASAN BERGABUNG* :\n║╰──────────────────────\n╚═══════════════════════\n'
+  conn.bye = `Selamat Tinggal @user!\nTerimakasih Telah Bergabung Di Grup\n\nKalo Balik Jangan Lupa Bawa Seblak Ya Buat Owner :')`
   conn.spromote = '𝗦𝗲𝗹𝗮𝗺𝗮𝘁🥳 𝗮𝗻𝗱𝗮 𝗻𝗮𝗶𝗸 𝗺𝗲𝗻𝗷𝗮𝗱𝗶 𝗮𝗱𝗺𝗶𝗻 𝗴𝗿𝗼𝘂𝗽 *(+_+)@user*'
   conn.sdemote = '*jabatan kamu di copot*🏃@user'
   conn.handler = handler.handler
   conn.onDelete = handler.delete
   conn.onParticipantsUpdate = handler.participantsUpdate
-  conn.onGroupUpdate = handler.GroupUpdate
   conn.onCall = handler.onCall
   conn.on('chat-update', conn.handler)
   conn.on('message-delete', conn.onDelete)
   conn.on('group-participants-update', conn.onParticipantsUpdate)
-  conn.on('group-update', conn.onGroupUpdate)
   conn.on('CB:action,,call', conn.onCall)
   if (isInit) {
     conn.on('error', conn.logger.error)
@@ -198,6 +193,7 @@ global.reload = (_event, filename) => {
 Object.freeze(global.reload)
 fs.watch(path.join(__dirname, 'plugins'), global.reload)
 global.reloadHandler()
+process.on('exit', () => global.db.save())
 
 
 
@@ -235,9 +231,9 @@ async function _quickTest() {
   require('./lib/sticker').support = s
   Object.freeze(global.support)
 
-  if (!s.ffmpeg) conn.logger.warn('Silakan instal ffmpeg untuk mengirim video (pkg install ffmpeg)')
-  if (s.ffmpeg && !s.ffmpegWebp) conn.logger.warn('Stiker tidak bisa dianimasikan tanpa libwebp di ffmpeg (--enable-ibwebp while compiling ffmpeg)')
-  if (!s.convert && !s.magick && !s.gm) conn.logger.warn('Stiker mungkin tidak berfungsi tanpa imagemagick jika libwebp di ffmpeg tidak diinstal (pkg install imagemagick)')
+  if (!s.ffmpeg) conn.logger.warn('Please install ffmpeg for sending videos (pkg install ffmpeg)')
+  if (s.ffmpeg && !s.ffmpegWebp) conn.logger.warn('Stickers may not animated without libwebp on ffmpeg (--enable-ibwebp while compiling ffmpeg)')
+  if (!s.convert && !s.magick && !s.gm) conn.logger.warn('Stickers may not work without imagemagick if libwebp on ffmpeg doesnt isntalled (pkg install imagemagick)')
 }
 
 _quickTest()

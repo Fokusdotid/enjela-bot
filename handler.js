@@ -33,6 +33,7 @@ module.exports = {
           if (!isNumber(user.exp)) user.exp = 0
           if (!isNumber(user.limit)) user.limit = 10
           if (!isNumber(user.lastclaim)) user.lastclaim = 0
+          if (!isNumber(user.lastclaim)) user.lastclaimm = 0  
           if (!isNumber(user.lastngojek)) user.lastngojek = 0
           if (!isNumber(user.lastnebang)) user.lastnebang = 0
           if (!isNumber(user.lastnyampah)) user.lastnyampah = 0
@@ -118,6 +119,7 @@ module.exports = {
           exp: 0,
           limit: 10,
           lastclaim: 0,
+          lastclaimm: 0,
           lastngojek: 0,
           lastnebang: 0,
           lastnyampah: 0,
@@ -211,6 +213,10 @@ module.exports = {
           if (!('antiLink' in chat)) chat.antiLink = true
           if (!isNumber(chat.expired)) chat.expired = 0
           if (!('antiBadword' in chat)) chat.antiBadword = true
+          if (!('antispam' in chat)) chat.antispam = true
+          if (!('antitroli' in chat)) chat.antitroli = false
+          if (!('antivirtex' in chat)) chat.antivirtex = false
+          if (!('nsfw' in chat)) chat.nsfw = false
         } else global.db.data.chats[m.chat] = {
           isBanned: false,
           welcome: false,
@@ -225,41 +231,42 @@ module.exports = {
           antiLink: true,
           expired: 0,
           antiBadword: true,
+          antispam: true,
+          antitroli: false,
+          antivirtex: false,
+          nsfw: false,
         }
-
-        let settings = global.db.data.settings
-        if (typeof settings !== 'object') global.db.data.settings = {}
+      let settings = global.db.data.settings
+        if (typeof settings !== 'object') global.db.data.settings[this.user.jid] = {}
         if (settings) {
           if (!'anon' in settings) settings.anon = true
           if (!'anticall' in settings) settings.anticall = true
-          if (!'antispam' in settings) settings.antispam = true
-          if (!'antitroli' in settings) settings.antitroli = false
           if (!'backup' in settings) settings.backup = false
           if (!isNumber(settings.backupDB)) settings.backupDB = 0
           if (!'groupOnly' in settings) settings.groupOnly = false
           if (!'jadibot' in settings) settings.groupOnly = false
-          if (!'nsfw' in settings) settings.nsfw = false
           if (!isNumber(settings.status)) settings.status = 0
-          if (!'clear' in settings) settings.clear = true  
+          if (!'clear' in settings) settings.clear = true
+          if (!isNumber(settings.cleartime)) settings.cleartime = 0 
         } else global.db.data.settings = {
           anon: true,
           anticall: true,
-          antispam: true,
-          antitroli: false,
           backup: false,
           backupDB: 0,
           groupOnly: false,
           jadibot: false,
-          nsfw: false,
           status: 0,
           clear: true,
-        }
+          cleartime: 0,
+        }  
       } catch (e) {
         console.error(e)
       }
       if (opts['nyimak']) return
       if (!m.fromMe && opts['self']) return
+      if (m.chat == 'status@broadcast') return
       if (typeof m.text !== 'string') m.text = ''
+      conn.chatRead(m.chat)
       for (let name in global.plugins) {
         let plugin = global.plugins[name]
         if (!plugin) continue
@@ -274,9 +281,6 @@ module.exports = {
         }
       }
       if (m.isBaileys) return
-      if (m.chat.endsWith('broadcast')) return // Supaya tidak merespon di status
-      let blockList = conn.blocklist.map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').filter(v => v != conn.user.jid)
-      if (blockList.includes(m.sender)) return // Pengguna yang diblokir tidak bisa menggunakan bot
       m.exp += Math.ceil(Math.random() * 10)
 
       let usedPrefix
@@ -286,15 +290,13 @@ module.exports = {
       let isOwner = isROwner || m.fromMe
       let isMods = isOwner || global.mods.map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender)
       let isPrems = isROwner || global.prems.map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').includes(m.sender)
-      if (!isPrems && !m.isGroup && global.db.data.settings.groupOnly) return
       let groupMetadata = m.isGroup ? this.chats.get(m.chat).metadata || await this.groupMetadata(m.chat) : {} || {}
       let participants = m.isGroup ? groupMetadata.participants : [] || []
       let user = m.isGroup ? participants.find(u => u.jid == m.sender) : {} // User Data
-      let bot = m.isGroup ? participants.find(u => u.jid == this.user.jid) : {} // Data Kamu (bot)
-      let isAdmin = user.isAdmin || user.isSuperAdmin || false // Apakah user admin?
-      let isBotAdmin = bot.isAdmin || bot.isSuperAdmin || false // Apakah kamu (bot) admin?
+      let bot = m.isGroup ? participants.find(u => u.jid == this.user.jid) : {} // Your Data
+      let isAdmin = user.isAdmin || user.isSuperAdmin || false // Is User Admin?
+      let isBotAdmin = bot.isAdmin || bot.isSuperAdmin || false // Are you Admin?
       let DevMode = (global.DeveloperMode.toLowerCase() == 'true') || false
-      let isBlocked = this.blocklist.map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').filter(v => v != this.user.jid).includes(m.sender) // Apakah user diblokir?
       for (let name in global.plugins) {
         let plugin = global.plugins[name]
         if (!plugin) continue
@@ -328,7 +330,6 @@ module.exports = {
           isBotAdmin,
           isPrems,
           chatUpdate,
-          isBlocked,
         })) continue
         if (typeof plugin !== 'function') continue
         if ((usedPrefix = (match[0] || '')[0])) {
@@ -338,7 +339,7 @@ module.exports = {
           let _args = noPrefix.trim().split` `.slice(1)
           let text = _args.join` `
           command = (command || '').toLowerCase()
-          let fail = plugin.fail || global.dfail // Ketika gagal
+          let fail = plugin.fail || global.dfail // When failed
           let isAccept = plugin.command instanceof RegExp ? // RegExp Mode?
             plugin.command.test(command) :
             Array.isArray(plugin.command) ? // Array?
@@ -358,15 +359,15 @@ module.exports = {
             if (!['unbanchat.js', 'profile.js'].includes(name) && chat && chat.isBanned && !isPrems) return // Kecuali ini, bisa digunakan
             if (!['unbanchat.js', 'profile.js'].includes(name) && user && user.banned) return
           }
-          if (plugin.rowner && plugin.owner && !(isROwner || isOwner)) { // Keduanya Owner
+          if (plugin.rowner && plugin.owner && !(isROwner || isOwner)) { // Both Owner
             fail('owner', m, this)
             continue
           }
-          if (plugin.rowner && !isROwner) { // Owner sebenarnya
+          if (plugin.rowner && !isROwner) { // Real Owner
             fail('rowner', m, this)
             continue
           }
-          if (plugin.owner && !isOwner) { // Owner bot
+          if (plugin.owner && !isOwner) { // Number Owner
             fail('owner', m, this)
             continue
           }
@@ -378,17 +379,17 @@ module.exports = {
             fail('premium', m, this)
             continue
           }
-          if (plugin.group && !m.isGroup) { // Hanya grup
+          if (plugin.group && !m.isGroup) { // Group Only
             fail('group', m, this)
             continue
-          } else if (plugin.botAdmin && !isBotAdmin) { // Kamu Admin
+          } else if (plugin.botAdmin && !isBotAdmin) { // You Admin
             fail('botAdmin', m, this)
             continue
           } else if (plugin.admin && !isAdmin) { // User Admin
             fail('admin', m, this)
             continue
           }
-          if (plugin.private && m.isGroup) { // Hanya Private Chat
+          if (plugin.private && m.isGroup) { // Private Chat Only
             fail('private', m, this)
             continue
           }
@@ -396,7 +397,7 @@ module.exports = {
             fail('unreg', m, this)
             continue
           }
-          if (plugin.nsfw && !global.db.data.settings.nsfw) { // Nsfw
+          if (plugin.nsfw && !global.db.data.chats.nsfw) { // Nsfw
             fail('nsfw', m, this)
             continue
           }
@@ -406,7 +407,7 @@ module.exports = {
           if (xp > 200) m.reply('Ngecit -_-') // Hehehe
           else m.exp += xp
           if (!isPrems && plugin.limit && global.db.data.users[m.sender].limit < plugin.limit * 1) {
-            this.reply(m.chat, `Limit kamu habis, silahkan beli melalui *${usedPrefix}buy*\natau *${usedPrefix}shop*\n_ingin tanpa limit?_\n\n*Jadilah user premium!!*`, m)
+            this.reply(m.chat, `Limit kamu habis, silahkan beli melalui *${usedPrefix}buy*\natau *${usedPrefix}shop buy limit 1*\n_ingin tanpa limit?_\n\n*Jadilah user premium!!*`, m)
             continue // Limit habis
           }
           if (plugin.level > _user.level) {
@@ -433,21 +434,20 @@ module.exports = {
             isPrems,
             chatUpdate,
             DevMode,
-            isBlocked,
           }
           try {
             await plugin.call(this, m, extra)
             if (!isPrems) m.limit = m.limit || plugin.limit || false
           } catch (e) {
-            // Terjadi kesalahan
+            // Error occured
             m.error = e
             console.error(e)
             if (e) {
               let text = util.format(e)
               for (let key of Object.values(global.APIKeys))
-                text = text.replace(new RegExp(key, 'g'), 'apikey')
-                if (DevMode) {
-                        for (let jid of global.owner.map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').filter(v => v != conn.user.jid))  m.reply(`file:* ${plugin}\n*Nomor:* ${m.sender}\n*Text:* ${m.text}\n\n\`\`\`${text}\`\`\``, jid)
+                text = text.replace(new RegExp(key, 'g'), 'AGUZ')
+                if (DevMode && text.length > 100) {
+                        for (let jid of global.owner.map(v => v.replace(/[^0-9]/g, '') + '@s.whatsapp.net').filter(v => v != conn.user.jid))  m.reply(`*file:* ${m.plugin}\n*Nomor:* ${m.sender}\n*Text:* ${m.text}\n\n\`\`\`${text}\`\`\``, jid)
                 }
                 m.reply(text)
             }
@@ -460,7 +460,7 @@ module.exports = {
                 console.error(e)
               }
             }
-             if (m.limit) m.reply(+ m.limit + ' Limit terpakai') // Jadikan sebagai komentar jika kamu risih dengan pesan ini
+            if (m.limit) m.reply(+ m.limit + ' Limit Terpakai')
           }
           break
         }
@@ -503,7 +503,6 @@ module.exports = {
       } catch (e) {
         console.log(m, m.quoted, e)
       }
-      if (opts['autoread']) await this.chatRead(m.chat).catch(() => { })
     }
   },
   async participantsUpdate({ jid, participants, action }) {
@@ -555,14 +554,14 @@ module.exports = {
     let chat = global.db.data.chats[m.key.remoteJid]
     if (chat.delete) return
     await this.sendButton(m.key.remoteJid, `
-        *─────────「 Anti Delete 」─────────*
+        *────────「 ANTI DELETE 」─────────*
 
 
 *Terdeteksi @${m.participant.split`@`[0]}*
 *telah menghapus pesan, ngapain di hapus tong? :'v*
 
 _jangan di matikan om biar gak ada yang main apus" pesan wkwkwk :'v_
-`.trim(), '', 'MATIKAN ANTI DELETE', ',on delete', {
+`.trim(), '', 'MATIKAN ANTI DELETE', '.off antidelete', {
       quoted: m.message,
       contextInfo: {
         mentionedJid: [m.participant]
@@ -599,15 +598,15 @@ ketik *.off desc* untuk mematikan pesan ini
 
 global.dfail = (type, m, conn) => {
   let msg = {
-    rowner: 'Perintah ini hanya dapat digunakan oleh _*Pemilik Bot*_',
-    owner: '*[❗]*  Perintah ini hanya dapat digunakan oleh _*Pemilik Bot*_',
+    rowner: `Perintah ini hanya dapat digunakan oleh _*Pemilikku:')*_`,
+    owner: `*[❗]*  Perintah ini hanya dapat digunakan oleh _*Pemilikku :')*_`,
     mods: 'Perintah ini hanya dapat digunakan oleh _*Moderator*_',
     premium: 'Perintah ini hanya untuk pengguna _*Premium*_',
     group: 'Perintah ini hanya dapat digunakan di grup',
     private: 'Perintah ini hanya dapat digunakan di Chat Pribadi',
     admin: 'Perintah ini hanya untuk *Admin* grup',
     botAdmin: 'Jadikan bot sebagai *Admin* untuk menggunakan perintah ini',
-    unreg: ' *「 NOT REGISTERED DETECTED 」* \nHalo kaka, Yuk Daftar Dulu Soalnya Anda Belum Terdaftar Di Database Enjela Nih\n\n *── Segera Registrasi Data Diri Anda ──* \n\nKetik : #daftar nama|umur\nContoh : #daftar Enjela|16',
+    unreg: ' *「 BELUM DAFTAR TERDETEKSI 」* \nHalo kaka, Yuk Daftar Dulu Soalnya Anda Belum Terdaftar Di Database Enjela Nih\n\n *── Segera Registrasi Data Diri Anda ──* \n\nKetik : #daftar nama|umur\nContoh : #daftar Enjela|16',
     nsfw: 'NSFW tidak aktif boskuhh >_<'
   }[type]
   if (msg) return m.reply(msg)

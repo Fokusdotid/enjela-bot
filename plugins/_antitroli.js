@@ -1,7 +1,7 @@
 let handler = m => m
 
 handler.all = async function (m) {
-	if (!db.data.settings.antitroli) return // antitroli aktif?
+	if (!global.db.data.chats.antitroli) return // antitroli aktif?
     if (m.message && m.isBaileys && m.fromMe && m.quoted && m.quoted.mtype === 'orderMessage' && !(m.quoted.token && m.quoted.orderId)) {
         m.reply('Troli Terdeteksi\n\n' + require('util').format(m.key))
         await this.groupRemove(m.chat, [m.sender])

@@ -154,20 +154,31 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isR
       setting.anticall = isEnable
       break
     case 'antitroli':
-      isAll = true
-      if (!isOwner) {
-        global.dfail('owner', m, conn)
-        throw false
+      if (m.isGroup) {
+        if (!(isAdmin || isOwner)) {
+          global.dfail('admin', m, conn)
+          throw false
+        }
       }
-      setting.antitroli = isEnable
+      chat.antitroli = isEnable
       break
-    case 'antispam':
-      isAll = true
-      if (!isOwner) {
-        global.dfail('owner', m, conn)
-        throw false
+    case 'antivirtex':
+      if (m.isGroup) {
+        if (!(isAdmin || isOwner)) {
+          global.dfail('admin', m, conn)
+          throw false
+        }
       }
-      setting.antispam = isEnable
+      chat.antivirtex = isEnable
+      break  
+    case 'antispam':
+      if (m.isGroup) {
+        if (!(isAdmin || isOwner)) {
+          global.dfail('admin', m, conn)
+          throw false
+        }
+      }
+      chat.antispam = isEnable
       break
     case 'anon':
       isAll = true
@@ -178,12 +189,13 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isR
       setting.anon = isEnable
       break
     case 'nsfw':
-      isAll = true
-      if (!isOwner) {
-        global.dfail('owner', m, conn)
-        throw false
+      if (m.isGroup) {
+        if (!(isAdmin || isOwner)) {
+          global.dfail('admin', m, conn)
+          throw false
+        }
       }
-      setting.nsfw = isEnable
+      chat.nsfw = isEnable
       break
     case 'jadibot':
       isAll = true
@@ -215,9 +227,10 @@ let handler = async (m, { conn, usedPrefix, command, args, isOwner, isAdmin, isR
     default:
       if (!/[01]/.test(command)) throw `
 ┌〔 Daftar Opsi 〕
-│ ${isOwner ? '\n├ anon\n├ antispam\n├ antitroli\n├ backup\n├ clear\n├ grouponly\n├ jadibot\n├ nsfw\n├ public\n├ mycontact' : ''}
+│ ${isOwner ? '\n├ anon\n├ antispam\n├ antitroli\n├ antivirtex\n├ backup\n├ clear\n├ grouponly\n├ jadibot\n├ nsfw\n├ public\n├ clear\n├ mycontact' : ''}
 ├ antilink
 ├ autolevelup
+├ antibadword
 ├ delete
 ├ detect
 ├ document
