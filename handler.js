@@ -236,7 +236,7 @@ module.exports = {
           antivirtex: false,
           nsfw: false,
         }
-      let settings = global.db.data.settings
+      let settings = global.db.data.settings[this.user.jid]
         if (typeof settings !== 'object') global.db.data.settings[this.user.jid] = {}
         if (settings) {
           if (!'anon' in settings) settings.anon = true
