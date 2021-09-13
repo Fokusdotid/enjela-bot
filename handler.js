@@ -248,7 +248,7 @@ module.exports = {
           if (!isNumber(settings.status)) settings.status = 0
           if (!'clear' in settings) settings.clear = false
           if (!isNumber(settings.cleartime)) settings.cleartime = 0 
-        } else global.db.data.settings = {
+        } else global.db.data.settings[this.user.jid] = {
           anon: true,
           anticall: true,
           backup: false,
