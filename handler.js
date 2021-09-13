@@ -236,8 +236,8 @@ module.exports = {
           antivirtex: false,
           nsfw: false,
         }
-      let settings = global.db.data.settings[this.user.jid]
-        if (typeof settings !== 'object') global.db.data.settings[this.user.jid] = {}
+      let settings = global.db.data.settings
+        if (typeof settings !== 'object') global.db.data.settings = {}
         if (settings) {
           if (!'anon' in settings) settings.anon = true
           if (!'anticall' in settings) settings.anticall = true
@@ -248,7 +248,7 @@ module.exports = {
           if (!isNumber(settings.status)) settings.status = 0
           if (!'clear' in settings) settings.clear = false
           if (!isNumber(settings.cleartime)) settings.cleartime = 0 
-        } else global.db.data.settings[this.user.jid] = {
+        } else global.db.data.settings = {
           anon: true,
           anticall: true,
           backup: false,
