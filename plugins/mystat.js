@@ -1,5 +1,5 @@
 let handler = async (m, { conn }) => {
-    let { anon, anticall, backup, jadibot, groupOnly, clear } = global.db.data.settings
+    let { anon, anticall, backup, jadibot, groupOnly, clear } = global.db.data.settings[this.user.jid]
     const chats = conn.chats.all()
     const groups = chats.filter(v => v.jid.endsWith('g.us'))
     let totaljadibot = [...new Set([...global.conns.filter(conn => conn.user && conn.state !== 'close').map(conn => conn.user)])]
