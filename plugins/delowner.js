@@ -1,23 +1,23 @@
 let fs = require('fs')
 let handler = async (m, { conn, args }) => {
 
-    const json = JSON.parse(fs.readFileSync('./data/premium.json'))
+    const json = JSON.parse(fs.readFileSync('./data/owner.json'))
     let who
     if (m.isGroup) who = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net'
     else who = args[0] ? args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net' : m.chat
-    if (json.includes(who)) throw `${conn.getName(who)} belum premium!`
+    if (json.includes(who)) throw `${conn.getName(who)} belum jadi owner!`
     let index = json.findIndex(v => (v.replace(/[^0-9]/g, '') + '@s.whatsapp.net') === (who.replace(/[^0-9]/g, '') + '@s.whatsapp.net'))
     json.splice(index, 1)
-    fs.writeFileSync('./data/premium.json', JSON.stringify(json))
-    m.reply(`${conn.getName(who)} sekarang bukan premium!`)
+    fs.writeFileSync('./data/owner.json', JSON.stringify(json))
+    m.reply(`${conn.getName(who)} sekarang bukan owner!`)
 
     delete require.cache[require.resolve('../config')]
     require('../config')
 
 }
-handler.help = ['delprem [@user]']
+handler.help = ['delowner [@user]']
 handler.tags = ['owner']
-handler.command = /^(remove|hapus|-|del)prem$/i
+handler.command = /^(remove|hapus|-|del)owner$/i
 
 handler.owner = true
 
