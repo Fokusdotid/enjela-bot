@@ -1,7 +1,7 @@
 {
-  "name": "stikerinbot",
-  "description": "Lightweight WhatsApp Bot",
-  "repository": "https://github.com/ariffb25/stikerinbot",
+  "name": "enjela-bot",
+  "description": "Simpel Bot Whatsapp",
+  "repository": "https://github.com/FokusDotId/enjela-bot",
   "logo": "https://node-js-sample.herokuapp.com/node.png",
   "keywords": [
     "bot",
